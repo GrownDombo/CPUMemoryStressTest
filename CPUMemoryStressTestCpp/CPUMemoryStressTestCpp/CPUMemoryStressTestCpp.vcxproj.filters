@@ -5,9 +5,36 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="소스 파일\Runner">
+      <UniqueIdentifier>{6B0FD25E-B11A-4607-A1D0-6FE1575F2CF8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Logging">
+      <UniqueIdentifier>{4860BB87-3EC7-46F8-B345-0D84B3B04C74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Workloads">
+      <UniqueIdentifier>{80E42CE0-B602-4BA0-A306-A2448E5F1C81}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Utils">
+      <UniqueIdentifier>{9801284D-8C67-4D68-B661-B4125EA43888}</UniqueIdentifier>
+    </Filter>
     <Filter Include="헤더 파일">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="헤더 파일\Interfaces">
+      <UniqueIdentifier>{7F87EA5F-DB94-4294-A757-2E25B4D5D850}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Runner">
+      <UniqueIdentifier>{3E644BDE-12E3-4D35-B33E-54A8798C4D32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Logging">
+      <UniqueIdentifier>{7BAE293D-6C08-4F58-81D3-5F95B42A5D39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Workloads">
+      <UniqueIdentifier>{A8C931B0-7E73-4984-BA38-2BF699A42219}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Utils">
+      <UniqueIdentifier>{4F16DD6D-45FB-44AF-AC75-D54E5DC64276}</UniqueIdentifier>
     </Filter>
     <Filter Include="리소스 파일">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -15,8 +42,79 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CPUMemoryStressTestCpp.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Runner\StressTestRunner.cpp">
+      <Filter>소스 파일\Runner</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\CsvResultWriter.cpp">
+      <Filter>소스 파일\Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Workloads\ArrayMathStressTest.cpp">
+      <Filter>소스 파일\Workloads</Filter>
+    </ClCompile>
+    <ClCompile Include="Workloads\FibonacciStressTest.cpp">
+      <Filter>소스 파일\Workloads</Filter>
+    </ClCompile>
+    <ClCompile Include="Workloads\PrimeStressTest.cpp">
+      <Filter>소스 파일\Workloads</Filter>
+    </ClCompile>
+    <ClCompile Include="Workloads\SortStressTest.cpp">
+      <Filter>소스 파일\Workloads</Filter>
+    </ClCompile>
+    <ClCompile Include="Workloads\MandelbrotStressTest.cpp">
+      <Filter>소스 파일\Workloads</Filter>
+    </ClCompile>
+    <ClCompile Include="Workloads\MemoryStressTest.cpp">
+      <Filter>소스 파일\Workloads</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Environment.cpp">
+      <Filter>소스 파일\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ConsoleEncoding.cpp">
+      <Filter>소스 파일\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\StressAlgorithms.cpp">
+      <Filter>소스 파일\Utils</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Interfaces\IStressTest.h">
+      <Filter>헤더 파일\Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="Runner\StressTestRunner.h">
+      <Filter>헤더 파일\Runner</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\CsvResultWriter.h">
+      <Filter>헤더 파일\Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Workloads\ArrayMathStressTest.h">
+      <Filter>헤더 파일\Workloads</Filter>
+    </ClInclude>
+    <ClInclude Include="Workloads\FibonacciStressTest.h">
+      <Filter>헤더 파일\Workloads</Filter>
+    </ClInclude>
+    <ClInclude Include="Workloads\PrimeStressTest.h">
+      <Filter>헤더 파일\Workloads</Filter>
+    </ClInclude>
+    <ClInclude Include="Workloads\SortStressTest.h">
+      <Filter>헤더 파일\Workloads</Filter>
+    </ClInclude>
+    <ClInclude Include="Workloads\MandelbrotStressTest.h">
+      <Filter>헤더 파일\Workloads</Filter>
+    </ClInclude>
+    <ClInclude Include="Workloads\MemoryStressTest.h">
+      <Filter>헤더 파일\Workloads</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Environment.h">
+      <Filter>헤더 파일\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ConsoleEncoding.h">
+      <Filter>헤더 파일\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\StressAlgorithms.h">
+      <Filter>헤더 파일\Utils</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
