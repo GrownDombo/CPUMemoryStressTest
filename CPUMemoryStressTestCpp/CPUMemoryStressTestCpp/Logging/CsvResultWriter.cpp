@@ -5,10 +5,17 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <utility>
 
 CsvResultWriter::CsvResultWriter()
     : outputDirectory_(Environment::CreateTimestampedResultDirectory())
 {
+}
+
+CsvResultWriter::CsvResultWriter(std::string outputDirectory)
+    : outputDirectory_(std::move(outputDirectory))
+{
+    std::filesystem::create_directories(outputDirectory_);
 }
 
 const std::string& CsvResultWriter::OutputDirectory() const

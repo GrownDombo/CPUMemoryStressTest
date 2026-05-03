@@ -131,8 +131,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Cli\CliCommandExecutor.cpp" />
+    <ClCompile Include="Cli\CliParser.cpp" />
+    <ClCompile Include="Cli\InteractiveSession.cpp" />
+    <ClCompile Include="Cli\ShellSession.cpp" />
     <ClCompile Include="Logging\CsvResultWriter.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Output\JsonResultWriter.cpp" />
+    <ClCompile Include="Registry\TestRegistry.cpp" />
     <ClCompile Include="Runner\StressTestRunner.cpp" />
     <ClCompile Include="Utils\ConsoleEncoding.cpp" />
     <ClCompile Include="Utils\Environment.cpp" />
@@ -145,8 +151,18 @@
     <ClCompile Include="Workloads\SortStressTest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Cli\CliCommandExecutor.h" />
+    <ClInclude Include="Cli\CliCommand.h" />
+    <ClInclude Include="Cli\CliExitCodes.h" />
+    <ClInclude Include="Cli\CliParser.h" />
+    <ClInclude Include="Cli\InteractiveSession.h" />
+    <ClInclude Include="Cli\ShellSession.h" />
     <ClInclude Include="Interfaces\IStressTest.h" />
     <ClInclude Include="Logging\CsvResultWriter.h" />
+    <ClInclude Include="Output\JsonResultWriter.h" />
+    <ClInclude Include="Registry\TestRegistry.h" />
+    <ClInclude Include="Results\PresetConfig.h" />
+    <ClInclude Include="Results\TestResult.h" />
     <ClInclude Include="Runner\StressTestRunner.h" />
     <ClInclude Include="Utils\ConsoleEncoding.h" />
     <ClInclude Include="Utils\Environment.h" />

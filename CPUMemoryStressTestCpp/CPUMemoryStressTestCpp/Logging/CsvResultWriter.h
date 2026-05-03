@@ -11,6 +11,7 @@ class CsvResultWriter {
 public:
     // 실행 결과를 저장할 timestamp 기반 출력 폴더를 생성하고 보관합니다.
     CsvResultWriter();
+    explicit CsvResultWriter(std::string outputDirectory);
 
     // 실행 시작 시 생성된 timestamp 기반 결과 폴더 경로를 반환합니다.
     const std::string& OutputDirectory() const;

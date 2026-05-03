@@ -1,11 +1,16 @@
-﻿#include "MemoryStressTest.h"
+#include "MemoryStressTest.h"
 
+#include <algorithm>
 #include <format>
-#include <iostream>
 #include <memory>
 #include <new>
 #include <vector>
 #include <windows.h>
+
+std::string MemoryStressTest::Id() const
+{
+    return "memory";
+}
 
 std::string MemoryStressTest::FileName() const
 {
@@ -17,31 +22,31 @@ std::string MemoryStressTest::Title() const
     return "[메모리 테스트]";
 }
 
-std::string MemoryStressTest::Run()
+TestResult MemoryStressTest::Run(const PresetConfig& config)
 {
-    std::cout << "[시작] 메모리 스트레스 테스트" << std::endl;
-
     MEMORYSTATUSEX memStatus;
     memStatus.dwLength = sizeof(memStatus);
 
-    ULONGLONG totalPhysicalMemory = 0;
+    ULONGLONG totalPhysicalMemory = 8ULL * 1024 * 1024 * 1024;
     if (GlobalMemoryStatusEx(&memStatus)) {
         totalPhysicalMemory = memStatus.ullTotalPhys;
     }
-    else {
-        std::cerr << "[경고] 메모리 정보를 가져오지 못했습니다. 기본 8GB 로 진행합니다." << std::endl;
-        totalPhysicalMemory = 8ULL * 1024 * 1024 * 1024;
-    }
 
-    const double targetMB = (totalPhysicalMemory / 1024.0 / 1024.0) * 0.8;
-    std::cout << std::format("[정보] 목표 메모리 사용량: {:.2f} MB", targetMB) << std::endl;
+    const std::size_t totalPhysicalMB = static_cast<std::size_t>(totalPhysicalMemory / 1024 / 1024);
+    const std::size_t defaultSafetyLimitMB = totalPhysicalMB / 2 == 0 ? 1 : totalPhysicalMB / 2;
+    const std::size_t extremeSafetyLimitMB = (totalPhysicalMB * 80) / 100 == 0 ? 1 : (totalPhysicalMB * 80) / 100;
+    const std::size_t safetyLimitMB = config.preset == Preset::Extreme ? extremeSafetyLimitMB : defaultSafetyLimitMB;
+    const std::size_t requestedTargetMB = config.memoryTargetPercent > 0
+        ? (totalPhysicalMB * static_cast<std::size_t>(config.memoryTargetPercent)) / 100
+        : static_cast<std::size_t>(config.memoryTargetMB < 1 ? 1 : config.memoryTargetMB);
+    const std::size_t targetMB = requestedTargetMB < safetyLimitMB ? requestedTargetMB : safetyLimitMB;
 
     constexpr std::size_t BlockSize = 1024 * 1024;
     std::vector<std::unique_ptr<char[]>> allocations;
     std::size_t totalAllocatedMB = 0;
 
     try {
-        while (true) {
+        while (totalAllocatedMB < targetMB) {
             std::unique_ptr<char[]> block(new (std::nothrow) char[BlockSize]);
             if (!block) {
                 throw std::bad_alloc();
@@ -53,21 +58,22 @@ std::string MemoryStressTest::Run()
 
             allocations.push_back(std::move(block));
             ++totalAllocatedMB;
-
-            if (totalAllocatedMB >= targetMB) {
-                break;
-            }
         }
     }
     catch (const std::bad_alloc&) {
-        std::cout << "[메모리] 메모리 부족" << std::endl;
+        // 부분 할당 결과도 의미 있는 스트레스 결과로 반환합니다.
     }
 
-    std::cout << "[종료] 메모리 스트레스 테스트 완료" << std::endl;
-
-    return std::format(
-        "전체 메모리 : {}, 목표 메모리 사용량 : {:.2f} MB, 실제 메모리 사용량 : {} MB",
-        totalPhysicalMemory,
-        targetMB,
-        totalAllocatedMB);
+    TestResult result;
+    result.testId = Id();
+    result.title = Title();
+    result.summary = std::format("목표 메모리 사용량 : {} MB, 실제 메모리 사용량 : {} MB", targetMB, totalAllocatedMB);
+    result.metrics["totalPhysicalMemoryBytes"] = std::to_string(totalPhysicalMemory);
+    result.metrics["totalPhysicalMemoryMB"] = std::to_string(totalPhysicalMB);
+    result.metrics["targetMB"] = std::to_string(targetMB);
+    result.metrics["allocatedMB"] = std::to_string(totalAllocatedMB);
+    if (config.memoryTargetPercent > 0) {
+        result.metrics["targetPercent"] = std::to_string(config.memoryTargetPercent);
+    }
+    return result;
 }

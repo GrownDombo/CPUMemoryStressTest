@@ -1,199 +1,234 @@
-﻿# CPUMemoryStressTest
+# CPUMemoryStressTest
 
-Windows 환경에서 CPU와 메모리에 의도적인 부하를 주고, 단일 처리와 병렬 처리의 차이를 CSV로 기록하는 C++ 콘솔 기반 스트레스 테스트 도구입니다.
+Windows에서 CPU/Memory 부하 테스트를 실행하는 C++20 콘솔 도구입니다.
 
-이 프로젝트는 단순 벤치마크 숫자를 얻는 것보다, **부하 시나리오를 직접 설계하고 실행 흐름을 구조화하며 리소스 사용 패턴을 관찰할 수 있는 도구를 구현하는 것**에 초점을 두었습니다. 초기 아이디어는 C#으로 검증했고, 메모리 할당과 실행 흐름을 더 명확하게 제어하기 위해 C++ 버전을 중심 구현으로 발전시켰습니다.
-
----
-
-## Portfolio Highlights
-
-- **C++20 기반 콘솔 애플리케이션 설계**
-  - Visual Studio 2022, MSBuild, WinAPI, STL 기반 구현
-  - Windows 콘솔/CSV 한글 인코딩 처리 및 CRLF 줄바꿈 정책 적용
-
-- **Strategy + Runner 패턴 리팩터링**
-  - 각 스트레스 테스트를 `IStressTest` 인터페이스 구현체로 분리
-  - 측정, CSV 기록, 테스트 간 대기, 메모리 정리는 `StressTestRunner`에서 공통 처리
-  - 새 테스트 추가 시 Runner를 수정하지 않고 테스트 클래스 등록만으로 확장 가능
-
-- **CPU/Memory 부하 시나리오 직접 구현**
-  - 배열 수학 연산, 재귀 피보나치, 소수 탐색, 정렬/병합, Mandelbrot 계산, 메모리 할당 테스트
-  - 단일 처리와 병렬 처리 방식을 나눠 실행하고 결과를 비교 가능하게 기록
-
-- **안전성과 유지보수성 개선**
-  - `new/delete` 중심 구현을 `std::vector`, `std::unique_ptr` 기반으로 개선
-  - `_msize()` 의존 제거
-  - `std::thread::hardware_concurrency()`가 0을 반환해도 최소 1개 worker 보장
-  - Mandelbrot 병렬 처리를 “열마다 스레드 생성” 방식에서 제한된 worker 기반 분할 처리로 개선
+기본 실행은 사람이 쓰는 대화형 모드이고, 인자를 붙이면 AI나 스크립트가 쓰기 좋은 JSON 기반 CLI로 동작합니다. CSV 저장도 지원하지만, CLI에서는 명시적으로 요청했을 때만 파일을 만듭니다.
 
 ---
 
-## Tech Stack
+## 빠른 실행
 
-| Area | Details |
+```powershell
+CPUMemoryStressTestCpp.exe list
+CPUMemoryStressTestCpp.exe run memory --preset quick
+CPUMemoryStressTestCpp.exe run all --preset quick --repeat 1
+CPUMemoryStressTestCpp.exe shell
+```
+
+인자 없이 실행하면 기존 대화형 모드로 전체 테스트를 순서대로 실행합니다.
+
+```powershell
+CPUMemoryStressTestCpp.exe
+```
+
+---
+
+## 주요 기능
+
+| 기능 | 설명 |
 |---|---|
-| Language | C++20 |
-| IDE / Build | Visual Studio 2022, MSBuild |
-| Platform | Windows |
-| Core APIs | WinAPI (`windows.h`, `psapi.h`, `shlobj.h`) |
-| STL | `thread`, `chrono`, `vector`, `memory`, `mutex`, `fstream`, `format` |
-| Output | Timestamp 기반 폴더 + 테스트별 CSV |
+| 선택 실행 | `run memory`, `run cpu.prime.parallel`처럼 원하는 테스트만 실행 |
+| JSON 출력 | CLI 기본 출력은 stdout JSON |
+| CSV 저장 | `--save-csv` 옵션을 줄 때만 CSV 저장 |
+| Shell 모드 | `shell` 실행 후 `stress>` 프롬프트에서 반복 명령 |
+| Preset | `quick`, `normal`, `heavy` 강도 선택, `extreme`은 shell/대화형에서만 허용 |
+| 안전한 실패 처리 | 잘못된 인자는 error JSON과 exit code로 반환 |
 
 ---
 
-## Architecture
+## 명령어
+
+```text
+CPUMemoryStressTestCpp.exe list
+CPUMemoryStressTestCpp.exe run <test-id|all> [--preset quick|normal|heavy] [--repeat 1..5] [--save-csv] [--csv-dir <path>]
+CPUMemoryStressTestCpp.exe shell
+CPUMemoryStressTestCpp.exe help
+```
+
+예시:
+
+```powershell
+CPUMemoryStressTestCpp.exe run cpu.prime.parallel --preset normal
+CPUMemoryStressTestCpp.exe run memory --preset quick --save-csv
+CPUMemoryStressTestCpp.exe run memory --preset quick --save-csv --csv-dir .\CliTestCsv
+```
+
+Shell 모드:
+
+```text
+stress> list
+stress> run memory --preset quick
+stress> run cpu.fibonacci.parallel --preset extreme
+stress> exit
+```
+
+---
+
+## Preset
+
+| Preset | 용도 | 주의 |
+|---|---|---|
+| `quick` | 기능 확인, AI 호출 기본값 | 부담 적음 |
+| `normal` | 일반적인 부하 확인 | 짧게 CPU/Memory 사용 |
+| `heavy` | 강한 부하 확인 | 작업 저장 후 실행 권장 |
+| `extreme` | 예전 구현에 가까운 강한 스트레스 | shell/대화형에서 확인 입력 후 실행 |
+
+현재 설정:
+
+| Preset | Workers | Array | Prime | Fibonacci | Mandelbrot | Memory |
+|---|---:|---:|---:|---:|---|---|
+| `quick` | 최대 2 | 100,000 | 10,000 | 30 | 200x160, 100 iter | 128 MB |
+| `normal` | 최대 4 | 1,000,000 | 200,000 | 36 | 600x400, 500 iter | 512 MB |
+| `heavy` | HW worker | 5,000,000 | 2,000,000 | 42 | 1200x800, 1500 iter | 2048 MB |
+| `extreme` | HW worker | 50,000,000 | 100,000,000 | 45 | 2000x2000, 5000 iter | 물리 메모리 80% |
+
+`extreme`은 일회성 CLI에서는 차단됩니다. `shell` 모드나 인자 없는 대화형 모드에서 확인 문구를 입력한 뒤 사용할 수 있습니다. `run all --preset extreme`은 전체 테스트를 모두 강한 설정으로 실행하므로 필요한 경우에만 사용하세요.
+
+---
+
+## 테스트 ID
+
+| ID | 설명 |
+|---|---|
+| `cpu.array.single` | 단일 배열 수학 계산 |
+| `cpu.array.parallel` | 병렬 배열 수학 계산 |
+| `cpu.fibonacci.single` | 단일 재귀 피보나치 |
+| `cpu.fibonacci.parallel` | 병렬 재귀 피보나치 |
+| `cpu.prime.single` | 단일 소수 탐색 |
+| `cpu.prime.parallel` | 병렬 소수 탐색 |
+| `cpu.sort.single` | 단일 배열 정렬 |
+| `cpu.sort.parallel` | 병렬 배열 정렬 및 병합 |
+| `cpu.mandelbrot.single` | 단일 Mandelbrot 계산 |
+| `cpu.mandelbrot.parallel` | 병렬 Mandelbrot 계산 |
+| `memory` | 메모리 할당 및 페이지 접근 |
+
+---
+
+## 출력
+
+성공 예시:
+
+```json
+{
+  "ok": true,
+  "command": "run",
+  "target": "memory",
+  "preset": "quick",
+  "results": [
+    {
+      "testId": "memory",
+      "durationMs": 14.53,
+      "success": true,
+      "summary": "목표 메모리 사용량 : 128 MB, 실제 메모리 사용량 : 128 MB"
+    }
+  ]
+}
+```
+
+실패 예시:
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "invalid_test_id",
+    "message": "Unknown test id: cpu.foo"
+  }
+}
+```
+
+Exit code:
+
+| Code | 의미 |
+|---|---|
+| `0` | 성공 |
+| `2` | 잘못된 명령, 인자, test id, preset |
+| `10` | 테스트 실행 중 실패 |
+
+---
+
+## 구조
 
 ```text
 CPUMemoryStressTestCpp/
   CPUMemoryStressTestCpp/
-    main.cpp
+    main.cpp                         - 프로그램 진입점, interactive/CLI/shell 분기
+    Cli/
+      CliCommand.h                   - CLI 명령 데이터(list/run/help/shell, 옵션 값)
+      CliCommandExecutor.h/.cpp      - 파싱된 명령을 실제 실행 흐름으로 연결
+      CliExitCodes.h                 - CLI exit code 상수
+      CliParser.h/.cpp               - argv를 CliCommand로 변환하고 인자 검증
+      InteractiveSession.h/.cpp      - 인자 없는 기존 대화형 전체 실행 모드
+      ShellSession.h/.cpp            - stress> 프롬프트 기반 반복 명령 모드
     Interfaces/
-      IStressTest.h
+      IStressTest.h                  - 모든 스트레스 테스트가 구현하는 Strategy 인터페이스
+    Registry/
+      TestRegistry.h/.cpp            - test-id 기반 테스트 등록, 목록 조회, 선택 실행 지원
+    Results/
+      PresetConfig.h                 - quick/normal/heavy/extreme 부하 크기 정의
+      TestResult.h                   - 테스트 실행 결과(JSON/CSV 출력의 원천 데이터)
     Runner/
-      StressTestRunner.h
-      StressTestRunner.cpp
+      StressTestRunner.h/.cpp        - 실행 시간 측정, 예외 처리, 메모리 정리 대기
+    Output/
+      JsonResultWriter.h/.cpp        - CLI stdout JSON 출력 writer
     Logging/
-      CsvResultWriter.h
-      CsvResultWriter.cpp
+      CsvResultWriter.h/.cpp         - 선택적 CSV 결과 저장 writer
     Workloads/
-      ArrayMathStressTest.h/.cpp
-      FibonacciStressTest.h/.cpp
-      PrimeStressTest.h/.cpp
-      SortStressTest.h/.cpp
-      MandelbrotStressTest.h/.cpp
-      MemoryStressTest.h/.cpp
+      ArrayMathStressTest.h/.cpp     - sqrt/sin 배열 계산 부하
+      FibonacciStressTest.h/.cpp     - 재귀 피보나치 CPU 부하
+      PrimeStressTest.h/.cpp         - 소수 탐색 CPU 부하
+      SortStressTest.h/.cpp          - 랜덤 배열 정렬/병합 부하
+      MandelbrotStressTest.h/.cpp    - Mandelbrot 반복 계산 부하
+      MemoryStressTest.h/.cpp        - 물리 메모리 할당과 페이지 접근 부하
     Utils/
-      ConsoleEncoding.h/.cpp
-      Environment.h/.cpp
-      StressAlgorithms.h/.cpp
+      ConsoleEncoding.h/.cpp         - Windows 콘솔 UTF-8 입출력 설정
+      Environment.h/.cpp             - 결과 폴더 생성과 환경 경로 조회
+      StressAlgorithms.h/.cpp        - workload들이 공유하는 계산/보조 알고리즘
 ```
 
-### Design Intent
+설계 흐름:
 
-`IStressTest`는 각 테스트가 반드시 제공해야 하는 공통 계약입니다.
-
-- `FileName()`은 CSV 파일명을 제공합니다.
-- `Title()`은 콘솔과 CSV 제목으로 사용할 표시 이름을 제공합니다.
-- `Run()`은 실제 부하 작업만 수행하고 결과 요약 문자열을 반환합니다.
-
-`StressTestRunner`는 테스트의 구체 타입을 모른 채 `IStressTest` 인터페이스만 사용합니다. 따라서 실행 시간 측정, CSV 기록, 콘솔 출력, 테스트 간 대기 같은 공통 흐름은 한 곳에 모이고, 각 테스트 클래스는 자신의 알고리즘에만 집중합니다.
-
-이 구조는 포트폴리오 관점에서 다음 역량을 보여주기 위해 적용했습니다.
-
-- 중복된 절차 코드에서 공통 실행 파이프라인을 분리하는 리팩터링 능력
-- 인터페이스 기반 설계와 확장 가능한 객체 구성
-- Windows 콘솔 도구에서 발생하는 인코딩, 출력, 파일 시스템 이슈 대응
-- 저수준 리소스 사용 테스트에서 RAII 기반 안정성 개선
+```text
+CLI 입력 -> CliParser -> CliCommandExecutor -> TestRegistry -> IStressTest -> TestResult -> JsonResultWriter
+```
 
 ---
 
-## Stress Scenarios
+## 사용한 패턴
 
-총 11개 시나리오를 순서대로 실행합니다.
-
-| Category | Test | Purpose |
+| 패턴 | 적용 위치 | 이유 |
 |---|---|---|
-| CPU | Single Array Math | 대용량 배열에 `sqrt`, `sin` 계산을 수행 |
-| CPU | Parallel Array Math | 동일한 배열 연산 작업을 여러 worker에서 병렬 반복 |
-| CPU | Single Recursive | 재귀 피보나치 계산으로 CPU 부하 생성 |
-| CPU | Parallel Recursive | 재귀 피보나치 계산을 worker별로 병렬 실행 |
-| CPU | Single Prime | 지정 범위에서 소수 개수 계산 |
-| CPU | Parallel Prime | 범위를 나눠 소수 개수를 병렬 계산 |
-| CPU | Single Sort | 랜덤 배열 단일 정렬 |
-| CPU | Parallel Sort | 배열을 청크로 나눠 정렬 후 병합 |
-| CPU | Single Mandelbrot | Mandelbrot 영역 단일 계산 |
-| CPU | Parallel Mandelbrot | x축 범위를 나눠 Mandelbrot 병렬 계산 |
-| Memory | Memory Stress | 물리 메모리 기준 목표량까지 할당하고 페이지 접근 |
+| Strategy | `IStressTest`, `Workloads/*` | 테스트 알고리즘을 공통 인터페이스 뒤로 숨기고 새 테스트를 쉽게 추가하기 위해 |
+| Registry | `TestRegistry` | CLI의 test-id로 테스트를 찾고 `list` 명령을 제공하기 위해 |
+| Writer/Adapter | `JsonResultWriter`, `CsvResultWriter` | 실행 로직과 출력 형식을 분리하기 위해 |
+| Session | `InteractiveSession`, `ShellSession` | 대화형 모드와 shell 모드를 독립적인 실행 흐름으로 분리하기 위해 |
 
 ---
 
-## Output
-
-실행 결과는 바탕화면 아래 timestamp 폴더에 저장됩니다.
-
-```text
-Desktop/StressTestResult/YYYYMMDD_HHMMSS/
-```
-
-각 테스트는 별도 CSV 파일로 기록됩니다.
-
-```text
-SinglePrime.csv
-ParallelPrime.csv
-Memory.csv
-...
-```
-
-CSV에는 테스트 제목, 실행 시간, 결과 요약이 기록됩니다. Windows/Excel에서 한글이 깨지지 않도록 새 CSV 파일에는 UTF-8 BOM을 기록합니다.
-
-예시:
-
-```text
-"[단일 처리] 소수 찾기"
-5321.42 ms,결과 : 소수점 검색 범위 : 107374180, 소수점 개수 : 6190114
-```
-
----
-
-## Build & Run
-
-### Build
-
-Visual Studio 2022에서 솔루션을 열어 빌드할 수 있습니다.
-
-```text
-CPUMemoryStressTestCpp/CPUMemoryStressTestCpp.sln
-```
-
-또는 MSBuild로 빌드할 수 있습니다.
+## 확인용 명령
 
 ```powershell
-& "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" `
-  .\CPUMemoryStressTestCpp\CPUMemoryStressTestCpp.sln `
-  /p:Configuration=Release `
-  /p:Platform=x64
+CPUMemoryStressTestCpp.exe list
+CPUMemoryStressTestCpp.exe run memory --preset quick
+CPUMemoryStressTestCpp.exe run all --preset quick --repeat 1
+CPUMemoryStressTestCpp.exe run cpu.foo --preset quick
 ```
 
-### Run
+JSON 파싱 확인:
 
-1. 프로그램을 실행합니다.
-2. 스트레스 테스트 반복 횟수 `1~10`을 입력합니다.
-3. 등록된 11개 테스트가 순서대로 실행됩니다.
-4. 결과 CSV가 `Desktop/StressTestResult/YYYYMMDD_HHMMSS/`에 저장됩니다.
-
-> 일부 테스트는 CPU와 메모리를 강하게 사용합니다. 다른 작업을 저장한 뒤 실행하는 것을 권장합니다.
+```powershell
+$json = CPUMemoryStressTestCpp.exe run memory --preset quick
+$json | ConvertFrom-Json
+```
 
 ---
 
-## Repository Structure
+## Repository
 
 ```text
 CPUMemoryStressTestCpp/       중심 구현 C++ 버전
 CPUMemoryStressTestCSharp/    초기 프로토타입 C# 버전
-README.md                     프로젝트 소개와 실행 방법
-LICENSE                       MIT License
-.gitignore                    Visual Studio / 빌드 산출물 제외 설정
-.gitattributes                Windows 줄바꿈 정책
+README.md
+LICENSE
+.gitignore
 ```
-
----
-
-## What I Focused On
-
-이 프로젝트에서 특히 신경 쓴 부분은 다음과 같습니다.
-
-- 테스트 로직과 실행/측정/기록 로직을 분리해 유지보수성을 높이는 것
-- 병렬 처리 방식이 작업의 성격에 따라 달라질 수 있음을 코드 구조로 드러내는 것
-- 메모리 부하 테스트처럼 위험할 수 있는 영역에서 RAII로 정리 책임을 명확히 하는 것
-- 포트폴리오 프로젝트라도 실제 실행 환경에서 마주치는 인코딩, CSV, 줄바꿈 문제를 놓치지 않는 것
-
----
-
-## Future Improvements
-
-- 테스트 선택 실행 옵션 추가
-- 반복 횟수, 메모리 목표 비율, Mandelbrot 해상도 같은 설정값 외부화
-- 전체 실행 요약 CSV 추가
-- 실행 중 CPU/메모리 사용량 샘플링 추가
-- 단위 테스트 또는 작은 입력 기반 검증 모드 추가

@@ -80,7 +80,7 @@ namespace StressAlgorithms {
         return merged;
     }
 
-    void CalculateMandelbrot(int width, int height, int maxIterations, bool parallel)
+    void CalculateMandelbrot(int width, int height, int maxIterations, bool parallel, int requestedWorkerCount)
     {
         const double xmin = -2.1;
         const double xmax = 1.0;
@@ -118,7 +118,7 @@ namespace StressAlgorithms {
             return;
         }
 
-        const int workerCount = std::min(WorkerCount(), width);
+        const int workerCount = std::min(std::max(1, requestedWorkerCount), width);
         const int chunkSize = width / workerCount;
         std::vector<std::uint64_t> results(workerCount);
         std::vector<std::thread> threads;

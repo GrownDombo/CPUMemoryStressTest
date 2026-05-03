@@ -17,6 +17,15 @@
     <Filter Include="소스 파일\Utils">
       <UniqueIdentifier>{9801284D-8C67-4D68-B661-B4125EA43888}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\Cli">
+      <UniqueIdentifier>{E2AF6F42-1A9E-48C7-BF51-B7C90C38B5B5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Output">
+      <UniqueIdentifier>{092A5DC9-91F5-4B21-A0BB-E7737BC3F869}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\Registry">
+      <UniqueIdentifier>{118C01D4-039A-447A-9BE0-1D6A1174D69A}</UniqueIdentifier>
+    </Filter>
     <Filter Include="헤더 파일">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
@@ -35,6 +44,18 @@
     </Filter>
     <Filter Include="헤더 파일\Utils">
       <UniqueIdentifier>{4F16DD6D-45FB-44AF-AC75-D54E5DC64276}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Cli">
+      <UniqueIdentifier>{9563C6EF-3F3E-41FE-9CA5-20B9433F0E8C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Output">
+      <UniqueIdentifier>{B619A348-79D4-49A4-834E-2D0DD7D805EF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Registry">
+      <UniqueIdentifier>{06E1617B-381F-41A4-AEED-077942D8204B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="헤더 파일\Results">
+      <UniqueIdentifier>{58045D7F-C813-46DD-B70F-7AF2752F6891}</UniqueIdentifier>
     </Filter>
     <Filter Include="리소스 파일">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -78,6 +99,24 @@
     <ClCompile Include="Utils\StressAlgorithms.cpp">
       <Filter>소스 파일\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Cli\CliParser.cpp">
+      <Filter>소스 파일\Cli</Filter>
+    </ClCompile>
+    <ClCompile Include="Cli\CliCommandExecutor.cpp">
+      <Filter>소스 파일\Cli</Filter>
+    </ClCompile>
+    <ClCompile Include="Cli\InteractiveSession.cpp">
+      <Filter>소스 파일\Cli</Filter>
+    </ClCompile>
+    <ClCompile Include="Cli\ShellSession.cpp">
+      <Filter>소스 파일\Cli</Filter>
+    </ClCompile>
+    <ClCompile Include="Output\JsonResultWriter.cpp">
+      <Filter>소스 파일\Output</Filter>
+    </ClCompile>
+    <ClCompile Include="Registry\TestRegistry.cpp">
+      <Filter>소스 파일\Registry</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Interfaces\IStressTest.h">
@@ -115,6 +154,36 @@
     </ClInclude>
     <ClInclude Include="Utils\StressAlgorithms.h">
       <Filter>헤더 파일\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Cli\CliCommand.h">
+      <Filter>헤더 파일\Cli</Filter>
+    </ClInclude>
+    <ClInclude Include="Cli\CliCommandExecutor.h">
+      <Filter>헤더 파일\Cli</Filter>
+    </ClInclude>
+    <ClInclude Include="Cli\CliExitCodes.h">
+      <Filter>헤더 파일\Cli</Filter>
+    </ClInclude>
+    <ClInclude Include="Cli\CliParser.h">
+      <Filter>헤더 파일\Cli</Filter>
+    </ClInclude>
+    <ClInclude Include="Cli\InteractiveSession.h">
+      <Filter>헤더 파일\Cli</Filter>
+    </ClInclude>
+    <ClInclude Include="Cli\ShellSession.h">
+      <Filter>헤더 파일\Cli</Filter>
+    </ClInclude>
+    <ClInclude Include="Output\JsonResultWriter.h">
+      <Filter>헤더 파일\Output</Filter>
+    </ClInclude>
+    <ClInclude Include="Registry\TestRegistry.h">
+      <Filter>헤더 파일\Registry</Filter>
+    </ClInclude>
+    <ClInclude Include="Results\PresetConfig.h">
+      <Filter>헤더 파일\Results</Filter>
+    </ClInclude>
+    <ClInclude Include="Results\TestResult.h">
+      <Filter>헤더 파일\Results</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

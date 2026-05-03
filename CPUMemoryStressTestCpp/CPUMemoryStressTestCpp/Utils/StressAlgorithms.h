@@ -48,6 +48,6 @@ namespace StressAlgorithms {
     std::vector<int> MergeSortedChunks(const std::vector<std::vector<int>>& chunks);
 
     // Mandelbrot 계산을 수행해 CPU 부하를 만듭니다.
-    // parallel이 true이면 제한된 worker 수로 x축 범위를 나눠 처리합니다.
-    void CalculateMandelbrot(int width, int height, int maxIterations, bool parallel);
+    // parallel이 true이면 지정된 worker 수로 x축 범위를 나눠 처리합니다.
+    void CalculateMandelbrot(int width, int height, int maxIterations, bool parallel, int workerCount);
 }
