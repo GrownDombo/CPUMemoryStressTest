@@ -1,0 +1,65 @@
+name: C++ Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cpp-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release:
+    name: Build and publish Windows x64 release
+    runs-on: windows-latest
+
+    env:
+      SOLUTION_PATH: CPUMemoryStressTestCpp\CPUMemoryStressTestCpp.sln
+      BUILD_CONFIGURATION: Release
+      BUILD_PLATFORM: x64
+      EXE_PATH: CPUMemoryStressTestCpp\x64\Release\CPUMemoryStressTestCpp.exe
+      PACKAGE_ROOT: package\CPUMemoryStressTestCpp
+      DIST_DIR: dist
+      PACKAGE_NAME: CPUMemoryStressTestCpp-windows-x64-${{ github.ref_name }}.zip
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Validate release tag
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if ($env:RELEASE_TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
+            throw "Invalid release tag '$env:RELEASE_TAG'. Expected format: v1.2.3"
+          }
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v3
+        with:
+          msbuild-architecture: x64
+
+      - name: Build Release x64
+        run: msbuild "$env:SOLUTION_PATH" /t:Rebuild /p:Configuration="$env:BUILD_CONFIGURATION" /p:Platform="$env:BUILD_PLATFORM" /v:minimal
+
+      - name: Smoke test list command
+        run: '& $env:EXE_PATH list'
+
+      - name: Smoke test quick memory run
+        run: '& $env:EXE_PATH run memory --preset quick'
+
+      - name: Package release
+        run: |
+          New-Item -ItemType Directory -Force $env:PACKAGE_ROOT, $env:DIST_DIR | Out-Null
+          Copy-Item -LiteralPath $env:EXE_PATH -Destination $env:PACKAGE_ROOT
+          Copy-Item -LiteralPath README.md, LICENSE -Destination $env:PACKAGE_ROOT
+          Compress-Archive -Path "$env:PACKAGE_ROOT\*" -DestinationPath "$env:DIST_DIR\$env:PACKAGE_NAME" -Force
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: ${{ env.DIST_DIR }}/${{ env.PACKAGE_NAME }}

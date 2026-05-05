@@ -6,6 +6,28 @@ Windows에서 CPU/Memory 부하 테스트를 실행하는 C++20 콘솔 도구입
 
 ---
 
+## 배포판 다운로드
+
+릴리스 배포판은 GitHub Releases에서 받을 수 있습니다.
+
+배포 ZIP 이름은 다음 형식을 사용합니다.
+
+```text
+CPUMemoryStressTestCpp-windows-x64-vX.Y.Z.zip
+```
+
+ZIP에는 다음 파일만 포함됩니다.
+
+```text
+CPUMemoryStressTestCpp.exe
+README.md
+LICENSE
+```
+
+디버깅 심볼 파일(`.pdb`)은 배포 ZIP에 포함하지 않습니다.
+
+---
+
 ## 빠른 실행
 
 ```powershell
@@ -20,6 +42,45 @@ CPUMemoryStressTestCpp.exe shell
 ```powershell
 CPUMemoryStressTestCpp.exe
 ```
+
+---
+
+## 소스 빌드
+
+필요 환경:
+
+| 항목 | 값 |
+|---|---|
+| OS | Windows |
+| IDE/Toolchain | Visual Studio 2022 |
+| C++ Toolset | MSVC v143 |
+| Language Standard | C++20 |
+| Target | Release x64 |
+
+MSBuild로 빌드:
+
+```powershell
+msbuild CPUMemoryStressTestCpp\CPUMemoryStressTestCpp.sln /t:Rebuild /p:Configuration=Release /p:Platform=x64 /v:minimal
+```
+
+빌드 산출물:
+
+```text
+CPUMemoryStressTestCpp\x64\Release\CPUMemoryStressTestCpp.exe
+```
+
+---
+
+## 자동 릴리스
+
+이 저장소는 `.github/workflows/cpp-release.yml`로 C++ 배포판을 자동 생성합니다. 릴리스 태그는 `v숫자.숫자.숫자` 형식만 허용하며, 프리릴리스 태그는 허용하지 않습니다.
+
+```powershell
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+예: `v1.0.0`, `v2.3.4`는 허용하고 `v1.0.0-beta`, `v1.0`, `1.0.0`은 배포하지 않습니다.
 
 ---
 
@@ -226,6 +287,8 @@ $json | ConvertFrom-Json
 ## Repository
 
 ```text
+.github/workflows/
+  cpp-release.yml              GitHub Actions 기반 C++ Release 자동 배포
 CPUMemoryStressTestCpp/       중심 구현 C++ 버전
 CPUMemoryStressTestCSharp/    초기 프로토타입 C# 버전
 README.md
